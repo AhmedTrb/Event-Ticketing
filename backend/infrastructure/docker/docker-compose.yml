@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.7
+    container_name: my-keycloak-ticketing-platform
+    ports:
+      - "9090:8080" # host:container
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    command: start-dev
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-ticketing-platform
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4.1.4-management
+    container_name: rabbitmq-ticketing-platform
+    ports:
+      - "5672:5672" # messaging
+      - "15672:15672" # management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+volumes:
+  keycloak_data:
+  redis_data:
+  rabbitmq_data:

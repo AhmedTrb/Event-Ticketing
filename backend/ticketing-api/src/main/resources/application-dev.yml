@@ -1,0 +1,64 @@
+# Development Profile Configuration
+
+spring:
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ticketing_db
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000
+  
+  # RabbitMQ Configuration
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  
+  # OAuth2 Resource Server (Keycloak)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/ticketing-platform
+          jwk-set-uri: http://localhost:8180/realms/ticketing-platform/protocol/openid-connect/certs
+
+# Keycloak Configuration
+keycloak:
+  realm: ticketing-platform
+  auth-server-url: http://localhost:9090
+  resource: ticketing-api-client
+  public-client: false
+  
+# CORS Configuration (Development - Permissive)
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:4200
+  allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+
+# Logging (Development - Verbose)
+logging:
+  level:
+    root: INFO
+    com.backend.ticketingapi: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

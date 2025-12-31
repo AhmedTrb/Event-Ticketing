@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: ticketing-api
+  profiles:
+    active: dev
+
+server:
+  port: 8090
+  servlet:
+    context-path: /
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.backend.ticketingapi: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# API Documentation
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
