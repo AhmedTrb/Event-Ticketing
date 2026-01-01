@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: registration-worker
+  profiles:
+    active: dev
+
+server:
+  port: 8091
+
+# RabbitMQ Configuration Constants
+messaging:
+  registration:
+    queue: registration.queue
+    exchange: registration.exchange
+    routing-key: registration.routingKey

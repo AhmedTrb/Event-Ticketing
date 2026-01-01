@@ -30,14 +30,20 @@ spring:
     port: 5672
     username: guest
     password: guest
-  
+
   # OAuth2 Resource Server (Keycloak)
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8180/realms/ticketing-platform
-          jwk-set-uri: http://localhost:8180/realms/ticketing-platform/protocol/openid-connect/certs
+          issuer-uri: http://localhost:9090/realms/ticketing-platform
+          jwk-set-uri: http://localhost:9090/realms/ticketing-platform/protocol/openid-connect/certs
+
+messaging:
+  rabbitmq:
+    registration-queue: registration-queue
+    registration-exchange: registration-exchange
+    registration-routing-key: registration-routing-key
 
 # Keycloak Configuration
 keycloak:

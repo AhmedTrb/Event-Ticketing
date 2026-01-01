@@ -4,6 +4,15 @@ spring:
   profiles:
     active: dev
 
+# Messaging Configuration Constants
+messaging:
+  registration:
+    queue: registration.queue
+    exchange: registration.exchange
+    routing-key: registration.routingKey
+  notification:
+    channel: notifications
+
 server:
   port: 8090
   servlet:

@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: notification-service
+  profiles:
+    active: dev
+
+server:
+  port: 8092
+
+# Redis Notification Channel
+messaging:
+  notification:
+    channel: notifications

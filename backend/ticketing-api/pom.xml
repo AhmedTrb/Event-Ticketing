@@ -3,14 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>com.backend</groupId>
+        <artifactId>backend-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
-    <groupId>com.backend</groupId>
     <artifactId>ticketing-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>ticketing-api</name>
     <description>ticketing-api</description>
     <url/>
@@ -27,7 +25,6 @@
         <url/>
     </scm>
     <properties>
-        <java.version>17</java.version>
         <springdoc.version>2.3.0</springdoc.version>
     </properties>
     <dependencies>
