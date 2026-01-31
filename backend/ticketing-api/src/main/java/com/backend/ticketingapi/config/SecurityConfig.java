@@ -44,7 +44,7 @@ public class SecurityConfig {
                                 // Configure authorization rules
                                 .authorizeHttpRequests(auth -> auth
                                                 // Public endpoints
-                                                .requestMatchers("/api/auth/public/**").permitAll()
+                                                .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                                                 .permitAll()
@@ -93,7 +93,7 @@ public class SecurityConfig {
 
                 // Allow specific origins (from application.yml)
                 configuration.setAllowedOrigins(Arrays.asList(
-                                "http://localhost:3000",
+                                "http://localhost:8080",
                                 "http://localhost:4200"));
 
                 // Allow specific HTTP methods

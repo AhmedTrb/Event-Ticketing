@@ -1,0 +1,545 @@
+{
+	"info": {
+		"_postman_id": "c1f7b8a0-1234-4567-8901-abcdef123456",
+		"name": "Ticketing API",
+		"description": "API Documentation for the Ticketing Platform Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"newuser@example.com\",\n    \"password\": \"password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User (Me)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Keycloak User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/sync",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"sync"
+							]
+						}
+					},
+					"response": []
+				},
+                {
+					"name": "Google Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+                        "body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"auth_code_from_google\",\n    \"redirectUri\": \"http://localhost:3000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/google",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"google"
+							]
+						}
+					},
+					"response": []
+				},
+                {
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/public/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"public",
+                                "health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Events",
+			"item": [
+				{
+					"name": "List Upcoming Events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events?page=0&size=20&sort=startDate,asc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+                                {
+									"key": "sort",
+									"value": "startDate,asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events/{{eventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events",
+								"{{eventId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Event (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Summer Concert 2024\",\n    \"description\": \"A live outdoor concert.\",\n    \"startDate\": \"2024-07-15T18:00:00Z\",\n    \"endDate\": \"2024-07-15T22:00:00Z\",\n    \"eventType\": \"CONCERT\",\n    \"venueId\": \"{{venueId}}\",\n    \"performerId\": \"{{performerId}}\",\n    \"maxCapacity\": 500\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Venues",
+			"item": [
+				{
+					"name": "List All Venues",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/venues",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"venues"
+							]
+						}
+					},
+					"response": []
+				},
+                {
+					"name": "Get Venue by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/venues/{{venueId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"venues",
+                                "{{venueId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Venue (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Main Stadium\",\n    \"location\": \"123 Stadium Ave\",\n    \"type\": \"STADIUM\",\n    \"capacity\": 50000,\n    \"seatingMap\": \"<svg>...</svg>\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/venues",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"venues"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Movies",
+			"item": [
+				{
+					"name": "List All Movies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/movies",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"movies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Movie (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Blockbuster 2024\",\n    \"description\": \"Action packed movie\",\n    \"director\": \"Jane Doe\",\n    \"releaseDate\": \"2024-05-01\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/movies",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"movies"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+        {
+			"name": "Performers",
+			"item": [
+				{
+					"name": "List All Performers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/performers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"performers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Performer (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"The Rock Band\",\n    \"description\": \"Famous Rock Band\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/performers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"performers"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Registration",
+			"item": [
+				{
+					"name": "Simple Registration (Low Demand)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{eventId}}\",\n    \"seatIdentifiers\": [\n        \"A1\",\n        \"A2\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/register/simple",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"register",
+								"simple"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Queue Registration (High Demand)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{eventId}}\",\n    \"seatIdentifiers\": [\n        \"B1\",\n        \"B2\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/register/queue",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"register",
+								"queue"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8090",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "YOUR_JWT_TOKEN",
+			"type": "string"
+		},
+        {
+            "key": "venueId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "eventId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "performerId",
+            "value": "",
+            "type": "string"
+        }
+	]
+}

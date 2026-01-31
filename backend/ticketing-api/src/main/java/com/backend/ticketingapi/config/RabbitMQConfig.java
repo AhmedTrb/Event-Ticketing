@@ -5,9 +5,9 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class RabbitMQConfig {
@@ -27,12 +27,12 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public TopicExchange registrationExchange() {
-        return new TopicExchange(registrationExchange);
+    public DirectExchange registrationExchange() {
+        return new DirectExchange(registrationExchange);
     }
 
     @Bean
-    public Binding binding(Queue queue, TopicExchange exchange) {
+    public Binding binding(Queue queue, DirectExchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(registrationRoutingKey);
     }
 

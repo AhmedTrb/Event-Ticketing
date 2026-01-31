@@ -3,6 +3,13 @@ spring:
     name: ticketing-api
   profiles:
     active: dev
+  # OAuth2 Resource Server (Keycloak) - Base Configuration
+  # Profile-specific overrides in application-dev.yml and application-prod.yml
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9090/realms/ticketing-platform
 
 # Messaging Configuration Constants
 messaging:
@@ -43,3 +50,14 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
+
+# Keycloak Configuration for Admin/Auth
+keycloak:
+  server-url: http://localhost:9090
+  realm: ticketing-platform
+  client-id: ticketing-api-client
+  # For dev/test, using admin-cli credentials if service account not set up
+  # ideally use a service account with 'manage-users' role
+  admin-username: admin
+  admin-password: admin
+  realm-admin-client-id: admin-cli
