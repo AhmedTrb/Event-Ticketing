@@ -15,4 +15,9 @@ until curl -fs http://localhost:8090/actuator/health >/dev/null; do sleep 3; don
 echo "waiting for notification-service ..."
 until curl -s -o /dev/null http://localhost:8092/ws-notification/info; do sleep 3; done
 
-node --test --test-timeout=900000 tests/e2e/ticketing.e2e.test.mjs
+REPORTERS=(--test-reporter=spec --test-reporter-destination=stdout)
+# CI sets E2E_JUNIT_FILE (absolute path) to also get a JUnit XML report
+if [ -n "${E2E_JUNIT_FILE:-}" ]; then
+  REPORTERS+=(--test-reporter=junit "--test-reporter-destination=${E2E_JUNIT_FILE}")
+fi
+node --test --test-timeout=900000 "${REPORTERS[@]}" tests/e2e/ticketing.e2e.test.mjs

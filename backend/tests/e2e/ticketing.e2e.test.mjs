@@ -300,6 +300,7 @@ describe('ticketing platform end to end', () => {
     const TOTAL = Number(process.env.LOAD_REQUESTS ?? 600);
     const LOAD_USERS = Number(process.env.LOAD_USERS ?? 8);
     const CONCURRENCY = Number(process.env.LOAD_CONCURRENCY ?? 64);
+    const P95_LIMIT_MS = Number(process.env.LOAD_P95_MS ?? 3000);
 
     it(`accepts a burst of ${TOTAL} registrations while the worker is down, then drains the queue with zero loss`, async () => {
       const loadEvent = crypto.randomUUID();
@@ -321,7 +322,8 @@ describe('ticketing platform end to end', () => {
           + `p50=${percentile(latencies, 50).toFixed(0)}ms p95=${percentile(latencies, 95).toFixed(0)}ms `
           + `p99=${percentile(latencies, 99).toFixed(0)}ms statuses=${JSON.stringify(statuses)}`);
         assert.deepEqual(statuses, { 202: TOTAL }, 'every request must be accepted');
-        assert.ok(percentile(latencies, 95) < 3000, 'p95 acceptance latency must stay low');
+        assert.ok(percentile(latencies, 95) < P95_LIMIT_MS,
+          `p95 acceptance latency must stay under ${P95_LIMIT_MS}ms (set LOAD_P95_MS to tune for slow/shared machines)`);
 
         const stats = await waitUntil('queue depth visible', async () => {
           const s = await queueStats();

@@ -14,7 +14,9 @@
 | Does it absorb a registration burst? | **Yes.** In every burst run (600, 1,500) all requests were accepted with HTTP 202, with zero errors and zero lost bookings. Warm API: ~160 req/s, p95 < 1 s. Cold API right after a restart: much slower (§4.3). |
 | Is it production ready? | **No.** It is a solid, tested foundation. §5 lists the gaps (payment, auth on WebSockets, observability, secrets, migrations). |
 
-**What I could not verify:** code coverage was not measured (no JaCoCo configured, so the 80% target is unproven). Performance was measured on one shared laptop-class machine, with the load generator competing for the same CPU. Treat the numbers as relative, not absolute. No cloud testing was done.
+**Coverage (JaCoCo, measured after the report above was first drafted):** line coverage is ticketing-api 52.6%, registration-worker 80.2%, notification-service 59.2%, shared 28.7%. **The 80% target is met only by the worker.** The gaps are the Venue/Movie/Performer/Auth controllers, `AuthService`, and the shared enums/events.
+
+**What I could not verify:** performance was measured on one shared laptop-class machine, with the load generator competing for the same CPU. Treat the numbers as relative, not absolute. No cloud testing was done.
 
 ---
 
@@ -111,14 +113,14 @@
 9. **`ddl-auto: update`** instead of migrations; the `prod` profile uses `validate` with no schema to validate against.
 10. **Dev defaults everywhere:** `guest/guest`, `postgres/1234`, Keycloak `start-dev` with `admin/admin`, CORS for localhost only.
 11. **README drift:** it says the worker "releases the lock"; the implementation converts it to a permanent booked marker. Setup steps predate the new compose file.
-12. **Code coverage unmeasured**; the CI workflow still builds with `-DskipTests`.
+12. **Coverage below target** in three of four modules (see §1). CI now runs the tests and reports coverage, but does not yet enforce a threshold.
 
 ---
 
 ## 6. Recommended next steps (in order)
 
 1. **Commit this work on a branch** (≈22 modified files plus new ones), review the diff, and open a PR. Nothing is committed yet.
-2. **Make CI run the tests.** Update `backend-ci.yml`: `mvn verify` (+ JaCoCo, fail under 80%), then `docker compose up` and `tests/e2e`. Publish JUnit XML (Maven surefire; the Node suite already emits JUnit via `--test-reporter=junit`) to the job summary. **This is the better "visualisation of test results"**: a per-PR pass/fail table, a coverage badge, and k6/Grafana charts for load, rather than building a custom dashboard.
+2. **CI now runs the tests (done, pending its first GitHub run).** `backend-ci.yml` has two jobs: `mvn verify` over all modules with a JUnit report and a JaCoCo coverage table in the job summary, then a `docker compose` end-to-end job. **This is the better "visualisation of test results"**: a per-PR pass/fail check and coverage table, plus k6/Grafana charts for load later, rather than a custom dashboard. Next for CI: make both jobs required checks on `main`, add a coverage ratchet (then raise it to 80%), Dependabot, CodeQL and image scanning, and a BuildKit cache to speed up the e2e job. The CD workflow is deferred until there is somewhere to deploy.
 3. **Close the functional gaps tied to the README:** `Booking` entity + payment stub with lock-extension, `DELETE`/release endpoint with ownership check (Lua compare-and-delete), event/seat validation, STOMP auth (JWT on CONNECT).
 4. **Benchmark the cold-start problem** (the one real performance risk found): test `InitialRAMPercentage`, readiness warm-up, and pre-scaling.
 5. **Observability:** Micrometer + Prometheus, structured JSON logs, a trace/correlation ID carried in RabbitMQ headers, and dashboards for queue depth, consumer lag, lock-conflict rate, accept latency and time-to-confirm.
