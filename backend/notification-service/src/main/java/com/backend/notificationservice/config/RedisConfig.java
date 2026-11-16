@@ -7,6 +7,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
@@ -15,7 +16,10 @@ public class RedisConfig {
 
     @Bean
     public MessageListenerAdapter messageListenerAdapter(NotificationListener notificationListener) {
-        return new MessageListenerAdapter(notificationListener, "onMessage");
+        MessageListenerAdapter adapter = new MessageListenerAdapter(notificationListener, "onMessage");
+        // Publishers send plain JSON strings; the default JDK serializer would choke on them
+        adapter.setSerializer(new StringRedisSerializer());
+        return adapter;
     }
 
     @Bean

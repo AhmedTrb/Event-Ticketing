@@ -49,8 +49,10 @@ public class SeatLockService {
                 String currentOwner = (String) redisTemplate.opsForValue().get(lockKey);
                 log.warn("Seat {} is already locked by {}", seatId, currentOwner);
 
-                // Rollback attempt (simple)
-                unlockSeats(eventId, seatIdentifiers, userId);
+                // Roll back only the seats this request locked so far (never free
+                // seats held by someone else)
+                int index = seatIdentifiers.indexOf(seatId);
+                unlockSeats(eventId, seatIdentifiers.subList(0, index), userId);
                 throw new SeatAlreadyBookedException(eventId, seatId);
             }
 

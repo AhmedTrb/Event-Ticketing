@@ -1,5 +1,7 @@
 package com.backend.registrationworker.messaging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -8,15 +10,20 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Publishes booking outcome notifications as JSON strings on the Redis pub/sub
+ * channel consumed by notification-service (which pushes them over WebSocket).
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationPublisher {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    /** Must match notification-service's subscribed channel. */
+    public static final String REDIS_CHANNEL = "notifications";
 
-    // Channel for real-time notification
-    private static final String redisChannel = "notification";
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     public void publishBookingConfirmation(UUID userId, UUID bookingId, UUID eventId) {
         publishEvent("BOOKING_CONFIRMED", userId, bookingId, eventId, "Your booking has been confirmed!");
@@ -34,8 +41,11 @@ public class NotificationPublisher {
                 "eventId", eventId.toString(),
                 "message", message,
                 "timestamp", System.currentTimeMillis());
-
-        redisTemplate.convertAndSend(redisChannel, event);
-        log.info("Published notification event: {}", event);
+        try {
+            redisTemplate.convertAndSend(REDIS_CHANNEL, objectMapper.writeValueAsString(event));
+            log.info("Published notification event: {}", event);
+        } catch (JsonProcessingException e) {
+            log.error("Could not serialise notification {}", event, e);
+        }
     }
 }

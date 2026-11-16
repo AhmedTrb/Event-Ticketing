@@ -49,14 +49,17 @@ public class RegistrationService {
 
     /**
      * Handles Queued Registration.
-     * Pushes the request to RabbitMQ for async processing.
+     * Seats are locked synchronously in Redis (fail fast with 409 if taken), then
+     * the booking command is pushed to RabbitMQ so the worker can persist it
+     * asynchronously. The caller gets a tracking id immediately.
      */
     public UUID registerViaQueue(UUID userId, UUID eventId, List<String> seatIdentifiers) {
         log.info("Queueing registration for user {} on event {}", userId, eventId);
 
-        UUID bookingId = IdGenerator.generate();
+        // 1. Lock seats first (throws SeatAlreadyBookedException on conflict)
+        seatLockService.lockSeats(eventId, seatIdentifiers, userId);
 
-        // Create Command
+        UUID bookingId = IdGenerator.generate();
         ProcessBookingCommand command = new ProcessBookingCommand(
                 bookingId,
                 userId,
@@ -65,8 +68,14 @@ public class RegistrationService {
                 true // fromQueue
         );
 
-        // Publish to RabbitMQ
-        registrationPublisher.publishRegistrationRequest(command);
+        // 2. Publish to RabbitMQ; release the seats if the broker is unavailable
+        try {
+            registrationPublisher.publishRegistrationRequest(command);
+        } catch (RuntimeException e) {
+            log.error("Failed to publish booking {}, releasing seats", bookingId, e);
+            seatLockService.unlockSeats(eventId, seatIdentifiers, userId);
+            throw e;
+        }
 
         return bookingId;
     }

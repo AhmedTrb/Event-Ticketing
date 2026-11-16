@@ -8,4 +8,8 @@ import java.util.UUID;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, UUID> {
+
+    boolean existsByBookingId(UUID bookingId);
+
+    long countByEventId(UUID eventId);
 }

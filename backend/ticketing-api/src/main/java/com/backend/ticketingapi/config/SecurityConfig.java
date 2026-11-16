@@ -43,6 +43,9 @@ public class SecurityConfig {
 
                                 // Configure authorization rules
                                 .authorizeHttpRequests(auth -> auth
+                                                // Profile endpoints need a token (must precede the permitAll below)
+                                                .requestMatchers("/api/auth/me", "/api/auth/sync").authenticated()
+
                                                 // Public endpoints
                                                 .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()

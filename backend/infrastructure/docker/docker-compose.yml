@@ -1,4 +1,34 @@
-version: "3.9"
+# Event Ticketing platform - infrastructure + application services.
+#
+#   docker compose up -d --build          # everything
+#   docker compose up -d redis rabbitmq keycloak postgres   # infra only
+#   docker compose up -d --scale registration-worker=3      # more workers = more throughput
+#
+# Existing volumes (keycloak_data, redis_data, rabbitmq_data) and container
+# names are unchanged so data from previous runs is preserved.
+# Credentials below are LOCAL DEVELOPMENT defaults (override via environment).
+
+name: docker
+
+x-spring-common: &spring-common
+  restart: unless-stopped
+  environment: &spring-env
+    SPRING_PROFILES_ACTIVE: dev
+    # HYPOTHESIS, not yet benchmarked: the first burst after a restart was far slower
+    # than a warm one (p95 ~12s vs ~0.8s). A larger initial heap should reduce
+    # GC-resize stalls on a cold JVM; verify with a cold-start load test.
+    JAVA_OPTS: "-XX:MaxRAMPercentage=75 -XX:InitialRAMPercentage=60 -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError -Xss512k -Djava.security.egd=file:/dev/./urandom"
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ticketing_db
+    SPRING_DATASOURCE_USERNAME: postgres
+    SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-1234}
+    SPRING_DATA_REDIS_HOST: redis
+    SPRING_RABBITMQ_HOST: rabbitmq
+    # dev profile logs SQL/security at DEBUG/TRACE; keep containers quiet
+    LOGGING_LEVEL_ROOT: INFO
+    LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: INFO
+    LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: INFO
+    LOGGING_LEVEL_ORG_HIBERNATE_SQL: WARN
+    LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL_BASICBINDER: WARN
 
 services:
   keycloak:
@@ -9,6 +39,11 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Tokens always carry iss=http://localhost:9090/... whether they are issued
+      # to the host (browser/tests) or to a container (ticketing-api login),
+      # while back-channel calls (JWKS) keep using the docker network name.
+      KC_HOSTNAME: http://localhost:9090
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     volumes:
       - keycloak_data:/opt/keycloak/data
     command: start-dev
@@ -22,6 +57,11 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     restart: unless-stopped
 
   rabbitmq:
@@ -32,9 +72,99 @@ services:
       - "15672:15672" # management UI
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      # dev only: allow the default guest user from other containers
+      - ./rabbitmq/10-guest.conf:/etc/rabbitmq/conf.d/10-guest.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
     restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-ticketing-platform
+    environment:
+      POSTGRES_DB: ticketing_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-1234}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticketing_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  ticketing-api:
+    <<: *spring-common
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        MODULE: ticketing-api
+    image: ticketing-platform/ticketing-api:local
+    container_name: ticketing-api
+    ports:
+      - "8090:8090"
+    mem_limit: 640m
+    environment:
+      <<: *spring-env
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:9090/realms/ticketing-platform
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/ticketing-platform/protocol/openid-connect/certs
+      KEYCLOAK_SERVER_URL: http://keycloak:8080
+      LOGGING_LEVEL_COM_BACKEND_TICKETINGAPI: INFO
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      keycloak: { condition: service_started }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  registration-worker:
+    <<: *spring-common
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        MODULE: registration-worker
+    image: ticketing-platform/registration-worker:local
+    mem_limit: 512m
+    environment:
+      <<: *spring-env
+      # parallel consumers + prefetch = the worker absorbs bursts at its own pace
+      SPRING_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY: "4"
+      SPRING_RABBITMQ_LISTENER_SIMPLE_MAX_CONCURRENCY: "8"
+      SPRING_RABBITMQ_LISTENER_SIMPLE_PREFETCH: "50"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  notification-service:
+    <<: *spring-common
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        MODULE: notification-service
+    image: ticketing-platform/notification-service:local
+    container_name: notification-service
+    ports:
+      - "8092:8092"
+    mem_limit: 512m
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
 
 volumes:
   keycloak_data:
   redis_data:
   rabbitmq_data:
+  postgres_data:

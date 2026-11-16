@@ -1,0 +1,10 @@
+**/target
+**/.idea
+**/.mvn/wrapper/*.jar
+**/*.iml
+**/*.stackdump
+.git
+infrastructure
+tests
+*.md
+*.json

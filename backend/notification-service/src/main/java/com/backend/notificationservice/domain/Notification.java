@@ -28,7 +28,15 @@ public class Notification {
     @Column(length = 50)
     private String type; // e.g., BOOKING_CONFIRMED, PAYMENT_FAILED
 
+    /** Tracking id returned by POST /api/register/queue (nullable for other notification kinds). */
+    @Column(name = "booking_id")
+    private UUID bookingId;
+
+    @Column(name = "event_id")
+    private UUID eventId;
+
     @Column(name = "is_read")
+    @Builder.Default
     private boolean read = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)

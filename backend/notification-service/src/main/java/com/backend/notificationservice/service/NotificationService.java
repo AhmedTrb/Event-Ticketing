@@ -40,6 +40,8 @@ public class NotificationService {
                     .userId(userId)
                     .message(message)
                     .type(type)
+                    .bookingId(parseUuid(messageData.get("bookingId")))
+                    .eventId(parseUuid(messageData.get("eventId")))
                     .read(false)
                     .build();
 
@@ -60,6 +62,17 @@ public class NotificationService {
 
         } catch (Exception e) {
             log.error("Error processing notification", e);
+        }
+    }
+
+    private static UUID parseUuid(Object value) {
+        if (!(value instanceof String text) || text.isBlank()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(text);
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 }

@@ -7,8 +7,12 @@ spring:
 server:
   port: 8091
 
-# RabbitMQ Configuration Constants
+# RabbitMQ Configuration Constants (must match ticketing-api)
 messaging:
+  rabbitmq:
+    registration-queue: registration-queue
+    registration-exchange: registration-exchange
+    registration-routing-key: registration-routing-key
   registration:
     queue: registration.queue
     exchange: registration.exchange

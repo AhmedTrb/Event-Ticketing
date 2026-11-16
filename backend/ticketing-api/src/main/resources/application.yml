@@ -13,6 +13,10 @@ spring:
 
 # Messaging Configuration Constants
 messaging:
+  rabbitmq:
+    registration-queue: registration-queue
+    registration-exchange: registration-exchange
+    registration-routing-key: registration-routing-key
   registration:
     queue: registration.queue
     exchange: registration.exchange

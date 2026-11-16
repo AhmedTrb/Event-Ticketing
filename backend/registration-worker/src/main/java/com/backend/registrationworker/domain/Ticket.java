@@ -7,7 +7,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tickets")
+@Table(name = "tickets", uniqueConstraints = @UniqueConstraint(name = "uk_ticket_event_seat", columnNames = { "event_id",
+        "seat_id" }))
 @Getter
 @Setter
 @NoArgsConstructor

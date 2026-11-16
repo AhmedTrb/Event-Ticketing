@@ -97,7 +97,7 @@ public class AuthService {
         // 1. Get Admin Client
         Keycloak keycloak = KeycloakBuilder.builder()
                 .serverUrl(keycloakServerUrl)
-                .realm(realm) // Admin actions usually against the target realm if user has rights, or master
+                .realm("master") // the bootstrap admin lives in the master realm
                 .grantType("password")
                 .clientId(adminClientId) // "admin-cli" usually
                 .username(adminUsername)
@@ -133,6 +133,9 @@ public class AuthService {
                 log.error("Failed to create user. Status: {}", response.getStatus());
                 throw new IllegalArgumentException("Failed to register user. Email might be taken.");
             }
+        } catch (IllegalArgumentException e) {
+            // e.g. duplicate email: a client error (400), not a server failure
+            throw e;
         } catch (Exception e) {
             log.error("Error creating user", e);
             throw new RuntimeException("Registration failed", e);
